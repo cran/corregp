@@ -3,7 +3,7 @@
 #' This package provides functions and methods for performing correspondence regression, i.e. the correspondence analysis of the
 #'   crosstabulation of a categorical variable Y in function of another one X, where X can in turn be made up of the combination of various
 #'   categorical variables.  
-#'   Consequently, correspondence regression can be used the analyze the effects for a polytomous or multinomial outcome variable.  
+#'   Consequently, correspondence regression can be used to analyze the effects for a polytomous or multinomial outcome variable.  
 #'   The central function in the package is \code{\link{corregp}}, which enables methods for printing, summarizing and plotting the output.  
 #'   Additionally, there are functions for computing confidence intervals, ellipses or 3D ellipsoids (by means of bootstrapping).  
 #' @section Contents:
@@ -1317,7 +1317,7 @@ cell3d <- function(object,...) {
 #' @examples
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
-#' plot3d(haireye.crg, x_ell = TRUE, xsub = c("Hair", "Sex"))
+#' \donttest{plot3d(haireye.crg, x_ell = TRUE, xsub = c("Hair", "Sex"))}
 #' \donttest{play3d(spin3d())}
 #' @export
 plot3d.corregp <- function(x,axes=1:3,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NULL,xsub=NULL,hlim=NULL,vlim=NULL,dlim=NULL,asp=par3d("scale"),col_btm="darkgrey",col_top="red",cex_btm=par3d("cex"),cex_top=cex_btm,font_btm=par3d("font"),font_top=font_btm,col_ell="black",lwd_ell=1,lty_ell="shade",opa_ell=0.2,col_ori="grey",lwd_ori=1,main=NULL,sub=NULL,hlab=NULL,vlab=NULL,dlab=NULL,cl=0.95,add_ori=TRUE,...) {

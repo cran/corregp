@@ -87,7 +87,7 @@ Method to produce a 3D plot for a correspondence regression.
 \examples{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
-plot3d(haireye.crg, x_ell = TRUE, xsub = c("Hair", "Sex"))
+\donttest{plot3d(haireye.crg, x_ell = TRUE, xsub = c("Hair", "Sex"))}
 \donttest{play3d(spin3d())}
 }
 \seealso{

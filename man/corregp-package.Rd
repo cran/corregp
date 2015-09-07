@@ -7,7 +7,7 @@
 This package provides functions and methods for performing correspondence regression, i.e. the correspondence analysis of the
   crosstabulation of a categorical variable Y in function of another one X, where X can in turn be made up of the combination of various
   categorical variables.
-  Consequently, correspondence regression can be used the analyze the effects for a polytomous or multinomial outcome variable.
+  Consequently, correspondence regression can be used to analyze the effects for a polytomous or multinomial outcome variable.
   The central function in the package is \code{\link{corregp}}, which enables methods for printing, summarizing and plotting the output.
   Additionally, there are functions for computing confidence intervals, ellipses or 3D ellipsoids (by means of bootstrapping).
 }
