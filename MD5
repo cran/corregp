@@ -1,10 +1,10 @@
-d3fe7d8a88db4766961bea3f200af899 *DESCRIPTION
+393eafc7a9f6cea00ab2feeec2f751e9 *DESCRIPTION
 5e7346db21a0e9c36ddc26303834de5a *NAMESPACE
-f41e51b76af6acd224218f9b348a1008 *R/corregp.r
+777c0076cda2cb9faa6fcaf60c871492 *R/corregp.r
 ec511a3e5aaa47bef3a08b0793a07562 *data/COMURE.RData
 4a1a4888b375c653d739d034240387de *data/HairEye.RData
 0652add97739141c969215c158c6a2b9 *data/TSS.RData
-bcb6a5b4caede62eb7aa583a8a7dc47c *inst/CITATION
+4c7298aab9cf588d127d54d8070cad4f *inst/CITATION
 2ed0083988f1f3aebf9ad5cc0f96e939 *man/COMURE.Rd
 d027a8247c48c48cbb081f86a02369c4 *man/HairEye.Rd
 b62ff6240b38782bc145a08fa50d77c3 *man/TSS.Rd
@@ -18,7 +18,7 @@ f967899cf8f9ca7a872a3f1d18854eff *man/cell3d.corregp.Rd
 a743e0278285af339eaf028757da8605 *man/corregp.Rd
 ae68e144151e0124763af89c74ad8a3f *man/pcplot.corregp.Rd
 98022f558bdf49f442d8606b1dcd1085 *man/plot.corregp.Rd
-d88c8b303782a92ce89b130cbd04dec1 *man/plot3d.corregp.Rd
+64fd6af0d7815cd9c420861d4cc4354a *man/plot3d.corregp.Rd
 656d3a7f9d40f6a3382b851ad2ca35e0 *man/print.corregp.Rd
 4f488b898da3360f9798d3183d23cb06 *man/print.summary.corregp.Rd
 a4dc43e164ca4ecaae3b0d2431ea4a96 *man/screeplot.corregp.Rd

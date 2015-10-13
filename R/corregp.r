@@ -1318,7 +1318,6 @@ cell3d <- function(object,...) {
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' \donttest{plot3d(haireye.crg, x_ell = TRUE, xsub = c("Hair", "Sex"))}
-#' \donttest{play3d(spin3d())}
 #' @export
 plot3d.corregp <- function(x,axes=1:3,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NULL,xsub=NULL,hlim=NULL,vlim=NULL,dlim=NULL,asp=par3d("scale"),col_btm="darkgrey",col_top="red",cex_btm=par3d("cex"),cex_top=cex_btm,font_btm=par3d("font"),font_top=font_btm,col_ell="black",lwd_ell=1,lty_ell="shade",opa_ell=0.2,col_ori="grey",lwd_ori=1,main=NULL,sub=NULL,hlab=NULL,vlab=NULL,dlab=NULL,cl=0.95,add_ori=TRUE,...) {
 	crg <- x
