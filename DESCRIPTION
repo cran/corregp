@@ -1,6 +1,6 @@
 Package: corregp
 Title: Functions and Methods for Correspondence Regression
-Version: 1.0.2
+Version: 1.0.3
 Authors@R: person("Koen", "Plevoets", email="koen.plevoets@kuleuven.be",
     role=c("aut", "cre"))
 Description: A collection of tools for correspondence regression, i.e. the
@@ -15,11 +15,11 @@ Suggests: datasets, grDevices, MASS, knitr
 License: GPL-3
 LazyData: true
 VignetteBuilder: knitr
-Date: 2017-05-08
+Date: 2017-08-06
 RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2017-05-08 10:15:03 UTC; u0037955
+Packaged: 2017-08-06 19:03:41 UTC; u0037955
 Author: Koen Plevoets [aut, cre]
 Maintainer: Koen Plevoets <koen.plevoets@kuleuven.be>
 Repository: CRAN
-Date/Publication: 2017-05-08 13:44:14 UTC
+Date/Publication: 2017-08-06 22:41:47 UTC
