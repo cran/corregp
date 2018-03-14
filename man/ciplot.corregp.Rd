@@ -88,7 +88,7 @@ Method to plot confidence intervals for coordinates in correspondence regression
 \code{ciplot} (of a \code{corregp} output) makes use of \code{\link[gplots]{plotCI}} from the package \pkg{gplots}.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 ciplot(haireye.crg, parm = "y", axis = 1)

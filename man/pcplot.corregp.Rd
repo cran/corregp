@@ -92,7 +92,7 @@ Method to produce a \emph{parallel coordinate plot} of the output of a correspon
 Although adding lines for confidence intervals is possible, it is not recommended, as it typically leads to an unreadable plot.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 pcplot(haireye.crg, parm = "y", axes = 1:3)

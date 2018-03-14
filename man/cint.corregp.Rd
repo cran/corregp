@@ -37,7 +37,7 @@ Method to compute confidence intervals for coordinates in correspondence regress
 Typically, \code{cint} is not so much used directly as it is called by a \code{\link{ciplot.corregp}} command.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 cint(haireye.crg, parm = "y", axis = 1)

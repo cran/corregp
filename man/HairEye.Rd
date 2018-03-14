@@ -12,7 +12,7 @@ This is simply a data frame version of the in-built data set \code{\link[dataset
 The distribution of hair color, eye color and sex among 592 statistics students (from Snee 1974 and Friendly 1992).
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 haireye.crg

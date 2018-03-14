@@ -33,7 +33,7 @@ Method to compute 3D confidence ellipsoids for coordinates in correspondence reg
 Typically, \code{cell3d} is not so much used directly as it is called by a \code{\link{plot3d.corregp}} command.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 cell3d(haireye.crg, parm = "y")

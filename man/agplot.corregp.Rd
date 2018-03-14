@@ -8,20 +8,20 @@
 \title{Plotting an Association Graph for Correspondence Regression}
 \usage{
 \method{agplot}{corregp}(x, axes = NULL, ysub = NULL, xsub = NULL,
-  na.rm = FALSE, col = "black", cex = par("cex"), font = par("font"),
-  family = par("family"), lwd = par("lwd"), lty = par("lty"),
-  ycol = col, xcol = col, ncol = c("white", "lightgray"), nwid = lwd,
-  lcol = col, lwid = lwd, pcol = lcol, ppos = NULL, ptyp = "simple",
-  zoom = 1, hshft = 0, vshft = 0, main = NULL, cl = 0.95, nq = TRUE,
-  digits = 2, ...)
+  sort = NULL, na.rm = FALSE, col = "black", cex = par("cex"),
+  font = par("font"), family = par("family"), lwd = par("lwd"),
+  lty = par("lty"), ycol = col, xcol = col, ncol = c("white",
+  "lightgray"), nwid = lwd, lcol = col, lwid = lwd, pcol = lcol,
+  ppos = NULL, ptyp = "simple", zoom = 1, hshft = 0, vshft = 0,
+  main = NULL, cl = 0.95, nq = TRUE, digits = 2, ...)
 
 \method{plotag}{corregp}(x, axes = NULL, ysub = NULL, xsub = NULL,
-  na.rm = FALSE, col = "black", cex = par("cex"), font = par("font"),
-  family = par("family"), lwd = par("lwd"), lty = par("lty"),
-  ycol = col, xcol = col, ncol = c("white", "lightgray"), nwid = lwd,
-  lcol = col, lwid = lwd, pcol = lcol, ppos = NULL, ptyp = "simple",
-  zoom = 1, hshft = 0, vshft = 0, main = NULL, cl = 0.95, nq = TRUE,
-  digits = 2, ...)
+  sort = NULL, na.rm = FALSE, col = "black", cex = par("cex"),
+  font = par("font"), family = par("family"), lwd = par("lwd"),
+  lty = par("lty"), ycol = col, xcol = col, ncol = c("white",
+  "lightgray"), nwid = lwd, lcol = col, lwid = lwd, pcol = lcol,
+  ppos = NULL, ptyp = "simple", zoom = 1, hshft = 0, vshft = 0,
+  main = NULL, cl = 0.95, nq = TRUE, digits = 2, ...)
 
 agplot(x, ...)
 
@@ -35,6 +35,9 @@ plotag(x, ...)
 \item{ysub}{Vector of indices to select a subset of the Y levels.}
 
 \item{xsub}{Vector of indices to select a subset of the X levels. Can also be \code{"all"} or \code{"both"} (or abbreviations).}
+
+\item{sort}{Vector of axes for which to sort the coordinate scores. The default (\code{NULL}) plots all levels in the order in which they appear in the
+correspondence regression \code{x}.}
 
 \item{na.rm}{Logical specifying whether to omit \code{NA} coordinates from the plot. Defaults to \code{FALSE}.}
 
@@ -102,7 +105,7 @@ Function to make an association graph of the (significant) coordinate scores in 
 Association graphs (of a \code{corregp} output) in the \pkg{corregp} package make use of various functionalities of the package \pkg{diagram}.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 agplot(haireye.crg, axes = 1:2, xsub = c("Hair", "Sex"))

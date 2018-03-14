@@ -31,7 +31,7 @@ If all dimensions are retained, then the residuals will only be exactly zero to 
   account.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 residuals(haireye.crg, parm = c("Hair", "Sex"), nf = 2)

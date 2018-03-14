@@ -31,7 +31,7 @@ If all dimensions are retained, then the fitted values will only be equal to the
   account.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 fitted(haireye.crg, parm = c("Hair", "Sex"), nf = 2)

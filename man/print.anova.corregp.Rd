@@ -18,7 +18,7 @@ The output of a call to \code{anova} on a "corregp" object.
 Method to print the output of \code{\link{anova.corregp}}.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 anova(haireye.crg, nf = 2)

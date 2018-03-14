@@ -5,7 +5,7 @@
 \title{Correspondence Regression}
 \usage{
 corregp(formula, data, part = NULL, b = 0, xep = TRUE, std = FALSE,
-  rel = TRUE, phi = FALSE, chr = ".")
+  rel = TRUE, phi = FALSE, chr = ".", b_scheme = "multinomial")
 }
 \arguments{
 \item{formula}{A \code{\link[stats]{formula}} specification of which factors to cross with each other. The left-hand (\code{y}) side must be a single factor.
@@ -30,6 +30,8 @@ the relative frequencies (as is customary in correspondence analysis). Defaults 
 (which is \emph{Chi-squared} divided by \emph{N}). Reminiscent of \code{\link[MASS]{corresp}} in package \pkg{MASS}, defaults to \code{FALSE}.}
 
 \item{chr}{Character specifying the separator string for constructing the interaction terms.}
+
+\item{b_scheme}{Character specifying the sampling scheme for bootstrapping. Must match either \code{"multinomial"} (the default) or \code{"product-multinomial"}.}
 }
 \value{
 An object of class "corregp", i.e. a list with components:
@@ -70,7 +72,7 @@ The argument \code{parm} can be used when one wants to perform a correspondence 
   between the clusters.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 haireye.crg

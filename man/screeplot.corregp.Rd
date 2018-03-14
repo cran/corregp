@@ -32,7 +32,7 @@ Method to produce a \emph{scree plot}, i.e. a bar chart of the eigenvalues.
 \code{screeplot} (of a \code{corregp} output) makes use of \code{\link[gplots]{barplot2}} from the package \pkg{gplots}.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 screeplot(haireye.crg, add_ci = TRUE)

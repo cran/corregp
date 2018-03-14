@@ -31,7 +31,7 @@ If \code{object} was made with bootstrap replications, then \code{anova.corregp}
   deviations by means of the \code{\link{ci}} function.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 anova(haireye.crg, nf = 2)

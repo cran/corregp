@@ -14,19 +14,20 @@ This package provides functions and methods for performing correspondence regres
 }
 \section{Contents}{
 
-This package consists of the following datasets, functions, generics and methods:  
+This package consists of the following datasets, functions, generics and methods (some internal functions are no longer exported in version 2):  
 \subsection{Datasets}{
   \itemize{
     \item{\code{\link{HairEye}} }{Hair and eye color of statistics students (data frame).}
     \item{\code{\link{COMURE}} }{The use of linguistic variants in translations vs. non-translations and in six different registers.}
+    \item{\code{\link{AVT}} }{The use of linguistic variants in audio-visual translation (subtitles).}
     \item{\code{\link{TSS}}} {The use of inflected or uninflected determiners in vernacular Belgian Dutch.}
   }
 }
 \subsection{Functions}{
   \itemize{
     \item{\code{\link{ci}} }{A helper function to compute confidence intervals on the basis of a numeric vector.}
-    \item{\code{\link{confGet}} }{An internal function to retrieve the \code{conf} components in a \code{corregp} object.}
     \item{\code{\link{corregp}} }{The basic function to perform correspondence regression. Typically, one starts here, and then one uses \code{print}, \code{summary}, \code{anova}, \code{screeplot} or \code{plot} methods.}
+    \item{\code{\link{corregplicate}} }{A function for repeated correspondence regressions with bootstrapping in order to handle large data sets.}
   }
 }
 \subsection{Generics}{
@@ -71,6 +72,7 @@ This package consists of the following datasets, functions, generics and methods
 
 \itemize{
   \item Specify a \code{predict} method for a.o. supplementary points.
+  \item Specify a \code{plot} method for an \code{anova} table.
   \item Enable scale transformations for all plots (and corresponding confidence regions).
   \item Provide the possibility for so-called "calibration lines".
 }
@@ -78,7 +80,7 @@ This package consists of the following datasets, functions, generics and methods
 
 \section{Author}{
 
-Koen Plevoets, \email{koen.plevoets@kuleuven.be}
+Koen Plevoets, \email{koen.plevoets@ugent.be}
 }
 
 \section{Acknowledgements}{

@@ -7,19 +7,20 @@
 #'   The central function in the package is \code{\link{corregp}}, which enables methods for printing, summarizing and plotting the output.  
 #'   Additionally, there are functions for computing confidence intervals, ellipses or 3D ellipsoids (by means of bootstrapping).  
 #' @section Contents:
-#' This package consists of the following datasets, functions, generics and methods:  
+#' This package consists of the following datasets, functions, generics and methods (some internal functions are no longer exported in version 2):  
 #' \subsection{Datasets}{
 #'   \itemize{
 #'     \item{\code{\link{HairEye}} }{Hair and eye color of statistics students (data frame).}
 #'     \item{\code{\link{COMURE}} }{The use of linguistic variants in translations vs. non-translations and in six different registers.}
+#'     \item{\code{\link{AVT}} }{The use of linguistic variants in audio-visual translation (subtitles).}
 #'     \item{\code{\link{TSS}}} {The use of inflected or uninflected determiners in vernacular Belgian Dutch.}
 #'   }
 #' }
 #' \subsection{Functions}{
 #'   \itemize{
 #'     \item{\code{\link{ci}} }{A helper function to compute confidence intervals on the basis of a numeric vector.}
-#'     \item{\code{\link{confGet}} }{An internal function to retrieve the \code{conf} components in a \code{corregp} object.}
 #'     \item{\code{\link{corregp}} }{The basic function to perform correspondence regression. Typically, one starts here, and then one uses \code{print}, \code{summary}, \code{anova}, \code{screeplot} or \code{plot} methods.}
+#'     \item{\code{\link{corregplicate}} }{A function for repeated correspondence regressions with bootstrapping in order to handle large data sets.}
 #'   }
 #' }
 #' \subsection{Generics}{
@@ -62,17 +63,21 @@
 #' @section Future prospects:
 #' \itemize{
 #'   \item Specify a \code{predict} method for a.o. supplementary points.
+#'   \item Specify a \code{plot} method for an \code{anova} table.
 #'   \item Enable scale transformations for all plots (and corresponding confidence regions).
 #'   \item Provide the possibility for so-called "calibration lines".
 #' }
 #'
 #' @section Author:
-#' Koen Plevoets, \email{koen.plevoets@@kuleuven.be}  
+#' Koen Plevoets, \email{koen.plevoets@@ugent.be}  
 #'
 #' @section Acknowledgements:
 #' This package has benefited greatly from the helpful comments of Isabelle Delaere and Gert De Sutter. Thanks to Kurt Hornik and Uwe Ligges for proofing this package.  
 #' @docType package
 #' @name corregp-package
+NULL
+
+#' @import data.table
 NULL
 
 #' @import graphics
@@ -114,13 +119,15 @@ NULL
 #' @importFrom diagram textrect
 NULL
 
+utils::globalVariables(c("B_", "D_chi", "D_num", "E_den", "E_num", "F_", "F_t_s", "F_x_s", "F_x_t", "F_y_s", "F_y_t", "N_"))
+
 #' Hair and Eye Color of Statistics Students (Data Frame)
 #'
 #' The distribution of hair color, eye color and sex among 592 statistics students (from Snee 1974 and Friendly 1992).  
 #' @format A data frame with 592 rows and 3 variables.
 #' @source This is simply a data frame version of the in-built data set \code{\link[datasets]{HairEyeColor}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' haireye.crg
@@ -137,10 +144,11 @@ NULL
 #'
 #' This data set was a case study in the COMURE project ("\strong{co}rpus-based, \strong{mu}ltivariate research of \strong{re}gister variation in translated and
 #'   non-translated Belgian Dutch") which was conducted at the Department of Translation, Interpreting and Communication of Ghent University between 2010 and 2014.  
-#' @format A data frame with 3762 rows and 4 variables.
+#' @format A data frame with 3762 rows and 5 variables.
 #' \itemize{
 #'   \item{\code{Variant} }{The linguistic variant used in a set of alternatives (27 levels).}
 #'   \item{\code{Variable} }{The linguistic variable specifying a set of alternatives (13 levels).}
+#'   \item{\code{Variety} }{The dichotomization of \code{Variant} into standard and non-standard.}
 #'   \item{\code{Register} }{The register or "Text type" of the data (6 levels).}
 #'   \item{\code{Language} }{The language (and source language) of the data (3 levels).}
 #' }
@@ -163,16 +171,51 @@ NULL
 #' @name COMURE
 NULL
 
+#' The Use of Linguistic Variants in Audio-Visual Translation (Subtitles)
+#'
+#' This data set was a follow-up study to the \code{\link{COMURE}} project and was conducted at the Department of Translation, Interpreting and Communication of
+#'   Ghent University between 2014 and 2018.  
+#' @format A data frame with 3302 rows and 7 variables.
+#' \itemize{
+#'   \item{\code{Variant} }{The linguistic variant used in a set of alternatives (27 levels).}
+#'   \item{\code{Variable} }{The linguistic variable specifying a set of alternatives (13 levels).}
+#'   \item{\code{Variety} }{The dichotomization of \code{Variant} into standard and non-standard.}
+#'   \item{\code{Speaker} }{The role of the speaker in the data (2 levels).}
+#'   \item{\code{Language} }{The language (and source language) of the data (3 levels).}
+#'   \item{\code{Language2} }{The same as \code{Language} but with the observations of level \code{intra.nl} set to \code{NA}.}
+#'   \item{\code{Genre} }{The genre or register of the data (2 levels).}
+#' }
+#' @source
+#' Prieels, L., I. Delaere, K. Plevoets and G. De Sutter (2015) A corpus-based multivariate analysis of linguistic norm-adherence in audiovisual and written
+#'   translation. \emph{Across Languages and Cultures} \strong{16} (2), 209--231.
+#' @examples
+#' \donttest{
+#' data(AVT)
+#' # The execution of corregp may be slow, due to bootstrapping:  
+#' avt.crg <- corregp(Variant ~ Speaker * Language * Genre, data = AVT, part = "Variable", b = 3000)
+#' avt.crg
+#' summary(avt.crg, parm = "b", add_ci = TRUE)
+#' screeplot(avt.crg, add_ci = TRUE)
+#' anova(avt.crg, nf = 2)
+#' avt.col <- ifelse( xtabs(~ Variant + Variety, data = AVT)[, "Standard"] > 0, "blue", "red")
+#' plot(avt.crg, x_ell = TRUE, xsub = c("Speaker", "Language", "Genre"), col_btm = avt.col, 
+#'   col_top = "black")
+#' }
+#' @docType data
+#' @name AVT
+NULL
+
 #' The Use of Inflected or Uninflected Determiners in the Belgian Dutch Vernacular
 #'
 #' The distribution of the Belgian Dutch \emph{-e(n)}-suffix with 14 determiners in 14 registers and for several speaker characteristics.  
-#' @format A data frame with 40778 rows and 12 variables.
+#' @format A data frame with 40778 rows and 13 variables.
 #' \itemize{
 #'   \item{\code{Variant} }{The linguistic variant used in a set of alternatives (35 levels).}
 #'   \item{\code{Variable} }{The linguistic variable specifying a set of alternatives (14 levels).}
 #'   \item{\code{Inflected} }{Numeric variable specifying whether the linguistic variant is inflected (\code{1}) or not (\code{0}).}
 #'   \item{\code{Register} }{The register of the data in the Spoken Dutch Corpus (14 levels: see 
 #'     \href{http://lands.let.ru.nl/cgn/doc_English/topics/version_1.0/overview.htm}{here} for their definition).}
+#'   \item{\code{Register2} }{The dichotomization of \code{Register} into private and public.}
 #'   \item{\code{SpeakerID} }{The ID of the speaker in the Spoken Dutch Corpus (1144 levels).}
 #'   \item{\code{Region} }{The region in which the speaker lived until the age of 18 (4 levels).}
 #'   \item{\code{Sex} }{The sex of the speaker (2 levels).}
@@ -184,19 +227,18 @@ NULL
 #'     \href{http://lands.let.ru.nl/cgn/doc_English/topics/version_1.0/metadata/speakers.htm}{here} for their definition).}
 #' }
 #' @source
-#' Plevoets, K. (2008) \emph{Tussen spreek- en standaardtaal}. Leuven, Doctoral dissertation. Available online \href{https://lirias.kuleuven.be/handle/1979/1760}{here} and
-#'   \href{http://statbel.fgov.be/nl/modules/digibib/bevolking/1431_tussen_spreek-_en_standaardtaal.jsp}{here}.
+#' Plevoets, K. (2008) \emph{Tussen spreek- en standaardtaal}. Leuven, Doctoral dissertation. Available online \href{https://biblio.ugent.be/publication/1168055/file/1168056}{here}.
 #' @examples
 #' \donttest{
 #' data(TSS)
 #' # The execution of corregp may be slow, due to bootstrapping:  
-#' tss.crg <- corregp(Variant ~ Register * Region, data = TSS, part = "Variable", b = 3000)
+#' tss.crg <- corregp(Variant ~ Register2 * Region, data = TSS, part = "Variable", b = 3000)
 #' tss.crg
 #' summary(tss.crg, parm = "b", add_ci = TRUE)
 #' screeplot(tss.crg, add_ci = TRUE)
 #' anova(tss.crg, nf = 2)
 #' tss.col <- ifelse( xtabs(~ Variant + Inflected, data = TSS)[, 1] > 0, "blue", "red")
-#' plot(tss.crg, x_ell = TRUE, xsub = c("Register", "Region"), col_btm = tss.col, col_top = "black")
+#' plot(tss.crg, x_ell = TRUE, xsub = c("Register2", "Region"), col_btm = tss.col, col_top = "black")
 #' }
 #' @docType data
 #' @name TSS
@@ -220,6 +262,7 @@ NULL
 #' @param phi Logical specifying whether to compute the output on the scale of the \emph{Chi-squared} value of the contingency table or of the \emph{Phi-squared} value
 #'   (which is \emph{Chi-squared} divided by \emph{N}). Reminiscent of \code{\link[MASS]{corresp}} in package \pkg{MASS}, defaults to \code{FALSE}.
 #' @param chr Character specifying the separator string for constructing the interaction terms.
+#' @param b_scheme Character specifying the sampling scheme for bootstrapping. Must match either \code{"multinomial"} (the default) or \code{"product-multinomial"}.
 #' @details
 #' Correspondence regression rests on the idea, described by Gilula and Haberman (1988), of using a correspondence analysis to model a polytomous or multinomial (i.e.
 #'   'multi-category') response variable (\code{Y}) in terms of other (possibly interacting) factors (\code{X}) (see also 3.2 in Van der Heijden et al. 1989). These are
@@ -261,147 +304,227 @@ NULL
 #'   \emph{Applied Statistics} \strong{38} (2), 249--292.
 #' @seealso \code{\link{print.corregp}}, \code{\link{summary.corregp}}, \code{\link{screeplot.corregp}}, \code{\link{anova.corregp}}, \code{\link{plot.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' haireye.crg
 #' }
 #' @export
-corregp <- function(formula,data,part=NULL,b=0,xep=TRUE,std=FALSE,rel=TRUE,phi=FALSE,chr=".") {
-	n.tot <- nrow(data)
+corregp <- function(formula,data,part=NULL,b=0,xep=TRUE,std=FALSE,rel=TRUE,phi=FALSE,chr=".",b_scheme="multinomial") {
 	f.var <- all.vars(formula,functions=FALSE,unique=TRUE)
+	x.var <- f.var[-1]
+	y.var <- f.var[1]
+	if (!is.null(part) && is.na(part)) {
+		part <- NULL
+		}
+	f.dat <- data.table::data.table(data[,c(x.var,y.var,part)])
+	f.trm <- strsplit(labels(terms(formula,keep.order=FALSE)),split=":")
+	chr <- chr[1]
+	names(f.trm) <- sapply(f.trm,paste,collapse=chr)
+	y.aux <- f.dat[,list(N_=.N),keyby=c(y.var,part)]
+	x.aux <- f.dat[,list(N_=.N),keyby=c(x.var,part)]
+	t.aux <- lapply(f.trm,function(t01){f.dat[,list(N_=.N),keyby=t01]})
+	f.tab <- f.dat[,list(N_=as.double(.N)),by=names(f.dat)]
+	if (is.null(part)) {
+		f.tab <- f.tab[
+			merge(data.table::data.table(x.aux[,x.var,with=FALSE],Tmp_=1),data.table::data.table(y.aux[,y.var,with=FALSE],Tmp_=1),by="Tmp_",allow.cartesian=TRUE)[,-"Tmp_",with=FALSE],
+			on=c(x.var,y.var)][is.na(N_), N_:=0]
+		}
+	else {
+		f.tab <- f.tab[merge(x.aux[,c(x.var,part),with=FALSE],y.aux[,c(y.var,part),with=FALSE],by=part,allow.cartesian=TRUE), on=c(x.var,y.var,part)][is.na(N_), N_:=0]
+		y.aux <- y.aux[,list(N_=sum(N_)),by=y.var]
+		x.aux <- x.aux[,list(N_=sum(N_)),by=x.var]
+		}
+	n.tot <- f.tab[,sum(N_)]
+	b <- ifelse(is.null(b)||is.na(b),0,b)
+	if (b>0) {
+		b.sch <- pmatch(tolower(b_scheme),c("multinomial","product-multinomial","product_multinomial"))
+		if (b.sch==1) {
+			f.rep <- matrix(rmultinom(b,n.tot,f.tab$N_/n.tot),ncol=b,dimnames=list(NULL,paste("B",1:b,sep="")))
+			storage.mode(f.rep) <- "double"
+			f.tab <- data.table::melt(cbind(f.tab,f.rep), id.vars=c(x.var,y.var,part), measure.vars=c("N_",paste("B",1:b,sep="")), variable.name="B_", value.name="F_")
+			}
+		if (b.sch>1) {
+			f.tab <- rbind(
+				f.tab[,B_:="N_"],
+				f.tab[,c( lapply(.SD,function(j){rep(j,times=b)}), list( B_=paste("B",rep(1:b,each=length(N_)),sep=""), N_=as.double(rmultinom(b,sum(N_),N_)) ) ),
+					by=c(x.var,part),.SDcols=y.var]
+				)[,F_:=N_]
+			}
+		if (is.na(b.sch)) {
+			warning("argument 'b_scheme' has to match either 'multinomial' or 'product-multinomial', so no bootstrapping was done",call.=FALSE)
+			f.tab[,c("B_","F_") := list("N_",as.double(N_))]
+			}
+		}
+	else {
+		f.tab[,c("B_","F_") := list("N_",as.double(N_))]
+		}
+	data.table::setkeyv(f.tab,c("B_",x.var,y.var,part))
+	f.tab[,F_x_s := sum(F_), by=c("B_",x.var,part)]
+	f.tab[,F_y_s := sum(F_), by=c("B_",y.var,part)]
+	f.tab[,F_t_s := sum(F_), by=c("B_",part)]
+	f.tab[,F_x_t := sum(F_), by=c("B_",x.var)]
+	f.tab[,F_y_t := sum(F_), by=c("B_",y.var)]
+	f.tab[,E_num := F_x_s*F_y_s/F_t_s]
+	f.tab[,E_den := F_x_t*F_y_t]
+	f.tab[,D_num := F_-E_num]
+	f.tab[,D_chi := D_num/sqrt(E_den)]
+	f.tab[!is.finite(D_chi), D_chi:=0]
+	n.rot <- ifelse(phi[1],1,sqrt(n.tot))
+	f.chi <- n.rot*as.matrix(data.table::dcast(f.tab[B_=="N_"],formula(paste(paste(x.var,collapse="+"),"~",y.var,sep="")),fun.aggregate=sum,value.var="D_chi")[,-x.var,with=FALSE])
+	f.svd <- svd(f.chi)
+	s.svd <- f.svd$d[f.svd$d != 0]
+	r.ank <- 1:length(s.svd)
+	u.svd <- f.svd$u[,r.ank]
+	v.svd <- f.svd$v[,r.ank]
+	f.tab <- merge(f.tab,
+		data.table::data.table(x.aux[,x.var,with=FALSE], matrix(u.svd,nrow=nrow(u.svd),dimnames=list(NULL,paste("U_",r.ank,sep="")))),
+		by.x=x.var, by.y=x.var, all.x=TRUE, sort=FALSE)
+	f.tab <- merge(f.tab,
+		data.table::data.table(y.aux[,y.var,with=FALSE], matrix(v.svd,nrow=nrow(v.svd),dimnames=list(NULL,paste("V_",r.ank,sep="")))),
+		by.x=y.var, by.y=y.var, all.x=TRUE, sort=FALSE)
+	f.tab[,paste("S_",r.ank,sep="") := eval(parse(text=paste("list(",paste("U_",r.ank,"*D_chi*V_",r.ank,sep="",collapse=","),")",sep="")))]
+	if (std[1]) {
+		f.tab[,paste("U_",r.ank,sep="") := eval(parse(text=paste("list(",paste(paste("U_",r.ank,sep=""),paste("/s.svd[",r.ank,"]",sep=""),sep="",collapse=","),")",sep="")))]
+		f.tab[,paste("V_",r.ank,sep="") := eval(parse(text=paste("list(",paste(paste("V_",r.ank,sep=""),paste("/s.svd[",r.ank,"]",sep=""),sep="",collapse=","),")",sep="")))]
+		}
+	f.tab[,paste("Y_",r.ank,sep="") := eval(parse(text=paste("list(",paste("D_chi*U_",r.ank,sep="",collapse=","),")",sep="")))]
+	f.tab[,paste("X_",r.ank,sep="") := eval(parse(text=paste("list(",paste("D_num*V_",r.ank,sep="",collapse=","),")",sep="")))]
+	if (rel[1]) {
+		f.tab[,paste("W_",y.var,sep="") := sqrt(1/sum(F_)),by=c("B_",y.var)]
+		for (t02 in f.trm) {
+			f.tab[,paste("W_",paste(t02,collapse=chr),sep="") := sqrt(1/F_y_t)*(1/sum(F_)),by=c("B_",t02)]
+			}
+		}
+	else {
+		f.tab[,paste("W_",y.var,sep="") := 1]
+		for (t02 in f.trm) {
+			f.tab[,paste("W_",paste(t02,collapse=chr),sep="") := sqrt(1/(F_y_t*sum(F_))),by=c("B_",t02)]
+			}
+		}
+	y.lab <- levels(y.aux[,eval(parse(text=y.var))])
+	x.lab <- lapply(f.trm,function(t03){apply(t.aux[[paste(t03,collapse=chr)]][,t03,with=FALSE],1,paste,collapse=chr)})
+	y.loc <- n.rot*matrix(do.call(cbind, 
+			f.tab[B_=="N_",eval(parse(text=paste("list(",paste("sum(W_",y.var,"*Y_",r.ank,",na.rm=TRUE)",sep="",collapse=","),")",sep=""))),
+			keyby=y.var][,-y.var,with=FALSE]),
+		ncol=length(r.ank), dimnames=list(y.lab,r.ank))
+	x.loc <- lapply(f.trm,function(t04){
+		n.rot*matrix(do.call(cbind,
+			f.tab[B_=="N_", eval(parse(text=paste("list(",paste("sum(W_",paste(t04,collapse=chr),"*X_",r.ank,",na.rm=TRUE)",sep="",collapse=","),")",sep=""))),
+			keyby=c(t04)][,-t04,with=FALSE]),
+		ncol=length(r.ank), dimnames=list(x.lab[[paste(t04,collapse=chr)]],r.ank))
+		})
+	y.frq <- y.aux[,N_]
+	names(y.frq) <- y.lab
+	x.frq <- lapply(f.trm,function(t05){t.aux[[paste(t05,collapse=chr)]][,N_]})
+	for (t06 in names(f.trm)) {
+		names(x.frq[[t06]]) <- x.lab[[t06]]
+		}
+	xep <- ifelse(length(x.var)==1,FALSE,xep[1])
+	if (!xep) {
+		x.loc <- do.call(rbind,x.loc)
+		names(x.frq) <- NULL
+		x.frq <- do.call("c",x.frq)
+		}
+	f.out <- list(eigen=s.svd^2,y=y.loc,x=x.loc,freq=list(y=y.frq,x=x.frq))
+	if (b>0) {
+		y.con <- sapply(y.lab,function(yl){
+			yl=n.rot*matrix(do.call(cbind,
+				f.tab[B_!="N_" & eval(parse(text=paste(y.var,"==\"",yl,"\"",sep=""))),
+				eval(parse(text=paste("list(",paste("sum(W_",y.var,"*Y_",r.ank,",na.rm=TRUE)",sep="",collapse=","),")",sep=""))),by="B_"][,-"B_",with=FALSE]),
+				ncol=length(r.ank),dimnames=list(NULL,r.ank))
+			},simplify=FALSE,USE.NAMES=TRUE)
+		x.con <- lapply(f.trm,function(t07){
+			sapply(x.lab[[paste(t07,collapse=chr)]],function(xl){
+				n.rot*matrix(do.call(cbind,
+					f.tab[B_!="N_" & eval(parse(text=paste(t07,paste("\"",unlist(strsplit(xl,split=chr,fixed=TRUE)),"\"",sep=""),sep="==",collapse="&"))),
+					eval(parse(text=paste("list(",paste("sum(W_",paste(t07,collapse=chr),"*X_",r.ank,",na.rm=TRUE)",sep="",collapse=","),")",sep=""))),
+					by="B_"][,-"B_",with=FALSE]),
+				ncol=length(r.ank),dimnames=list(NULL,r.ank))
+				},simplify=FALSE,USE.NAMES=TRUE)
+			})
+		y.rep <- as.matrix(data.table::dcast(f.tab[B_!="N_",c("B_",y.var,"F_"),with=FALSE],formula(paste("B_~",y.var,sep="")),fun.aggregate=sum,value.var="F_")[,-"B_",with=FALSE])
+		x.rep <- lapply(f.trm,function(t08){
+			as.matrix(data.table::dcast(f.tab[B_!="N_",c("B_",t08,"F_"),with=FALSE],formula(paste("B_~",paste(t08,collapse="+"),sep="")),
+				fun.aggregate=sum,sep=chr,value.var="F_")[,-"B_",with=FALSE])
+			})
+		s.con <- (n.rot*matrix(do.call(cbind,
+				f.tab[B_!="N_",eval(parse(text=paste("list(",paste("sum(S_",r.ank,")",sep="",collapse=","),")",sep=""))),by="B_"][,-"B_",with=FALSE]),
+			nrow=b,dimnames=list(NULL,r.ank)))^2
+		if (!xep) {
+			names(x.con) <- NULL
+			x.con <- do.call("c",x.con)
+			x.rep <- do.call(cbind,x.rep)
+			}
+		f.out$conf <- list(eigen=s.con,y=y.con,x=x.con,freq=list(y=y.rep,x=x.rep))
+		}
+	colnames(u.svd) <- r.ank
+	colnames(v.svd) <- r.ank
 	if (is.null(part)) {
 		part <- NA
 		}
-	if (length(part)==1 && is.na(part)) {
-		data <- cbind(data.frame(lapply(data[,c(f.var[-1],f.var[1])],as.factor)),part=as.factor(rep("FULL",times=n.tot)))
-		}
-	else {
-		data <- data.frame(lapply(data[,c(f.var[-1],f.var[1],part)],as.factor))
-		}
-	f.dim <- as.vector(sapply(data,nlevels))
-	f.seq <- 1:length(f.dim)
-	y.num <- match(f.var[1],table=names(data))
-	f.num <- 1:y.num
-	p.num <- lapply(strsplit(labels(terms(formula,keep.order=FALSE)),split=":"),match,table=names(data))
-	p.lev <- lapply(p.num,function(x){levels(interaction(data[,x],sep=chr,drop=FALSE))})
-	p.seq <- 1:length(p.num)
-	p.lst <- cumsum(sapply(p.lev,length))
-	p.fst <- c(0,p.lst[-length(p.lst)]) + 1
-	x.len <- p.lst[length(p.lst)]
-	y.len <- f.dim[y.num]
-	x.frq <- numeric(length=x.len)
-	n.rot <- ifelse(phi,1,sqrt(n.tot))
-	b <- ifelse(is.null(b)||is.na(b),0,b)
-	r <- 0
-	while (r<=b) {
-		if (r>0) {
-			r.tab <- array(rmultinom(1,size=n.tot,prob=f.req),dim=f.dim)
-			}
-		else {
-			r.tab <- array(table(data),dim=f.dim)
-			if (b>0) {
-				f.req <- as.vector(r.tab)
-				}
-			}
-		y.tot <- apply(r.tab,c(y.num,f.seq[-f.num]),sum)
-		x.tot <- apply(r.tab,f.seq[-y.num],sum)
-		r.dev <- apply(r.tab-sweep(sweep(aperm(array(x.tot,dim=c(f.dim[-y.num],f.dim[y.num])),perm=c(f.num[-y.num],length(f.seq),f.seq[-f.num]-1)),c(y.num,f.seq[-f.num]),y.tot,"*"),f.seq[-f.num],apply(x.tot,f.seq[-f.num]-1,sum),"/"),f.num,sum)
-		r.den <- sweep(array(apply(x.tot,f.num[-y.num],sum),dim=f.dim[f.num]),y.num,y.tot <- apply(y.tot,1,sum),"*")
-		r.tab <- array(n.rot * r.dev / sqrt(r.den),dim=c(prod(f.dim[f.num[-y.num]]),y.len))
-		r.tab[!is.finite(r.tab)] <- 0
-		if (r==0) {
-			r.svd <- svd(r.tab)
-			u.svd <- r.svd$u
-			v.svd <- r.svd$v
-			s.svd <- r.svd$d
-			r.ank <- length(s.svd)
-			}
-		x.loc <- matrix(nrow=x.len,ncol=r.ank)
-		for (x1 in p.seq) {
-			p.ind <- p.num[[x1]]
-			p.dim <- c(p.ind,y.num)
-			p.dev <- apply(r.dev,p.dim,sum)
-			p.den <- sqrt(1 / apply(r.den,p.dim,sum))
-			p.den[!is.finite(p.den)] <- 0
-			p.tot <- as.vector(apply(x.tot,p.ind,sum))
-			x.frq[seq(p.fst[x1],p.lst[x1],by=1)] <- p.tot
-			if (rel) {
-				p.wgt <- sqrt(1 / p.tot)
-				}
-			else {
-				p.wgt <- rep(1,times=prod(f.dim[p.ind]))
-				}
-			p.wgt[p.tot==0] <- NA
-			x.loc[seq(p.fst[x1],p.lst[x1],by=1),] <- n.rot * sweep( array(p.dev * p.den,dim=c(prod(f.dim[p.ind]),y.len)) %*% v.svd %*% diag(1/s.svd) ,1,p.wgt,"*")
-			}
-		if (rel) {
-			y.wgt <- sqrt(1 / y.tot)
-			}
-		else {
-			y.wgt <- rep(1,times=y.len)
-			}
-		y.wgt[y.tot==0] <- NA
-		y.loc <- sweep ( t(r.tab) %*% u.svd %*% diag(1/s.svd) ,1,y.wgt,"*")
-		if (!std) {
-			y.loc <- y.loc %*% diag(s.svd)
-			x.loc <- x.loc %*% diag(s.svd)
-			}
-		if (r>0) {
-			r.con[r,] <- diag(t(u.svd) %*% r.tab %*% v.svd)^2
-			for (yl in y.seq) {
-				y.con[[yl]][r,] <- y.loc[yl,]
-				}
-			for (xl in x.seq) {
-				x.con[[xl]][r,] <- x.loc[xl,]
-				}
-			t.con$y[r,] <- y.tot
-			t.con$x[r,] <- x.frq
-			}
-		else {
-			f.out <- list(eigen=s.svd^2,y=y.loc,x=x.loc,freq=list(y=y.tot,x=x.frq))
-			if (b>0) {
-				y.seq <- 1:y.len
-				x.seq <- 1:x.len
-				r.con <- matrix(0,nrow=b,ncol=r.ank)
-				y.con <- rep(list(r.con),times=y.len)
-				x.con <- rep(list(r.con),times=x.len)
-				t.con <- list(y=matrix(0,nrow=b,ncol=y.len),x=matrix(0,nrow=b,ncol=x.len))
-				}
-			}
-		r <- r + 1
-		}
-	r.seq <- 1:r.ank
-	dimnames(f.out$y) <- list(y.lab <- levels(data[,y.num]),r.seq)
-	dimnames(f.out$x) <- list(x.lab <- unlist(p.lev),r.seq)
-	names(f.out$freq$y) <- y.lab
-	names(f.out$freq$x) <- x.lab
-	if (b>0) {
-		dimnames(r.con) <- list(1:b,r.seq)
-		names(y.con) <- y.lab
-		names(x.con) <- x.lab
-		dimnames(t.con$y) <- list(1:b,y.lab)
-		dimnames(t.con$x) <- list(1:b,x.lab)
-		f.out <- c(f.out,list(conf=list(eigen=r.con,y=y.con,x=x.con,freq=t.con)))
-		}
-	xep <- ifelse(length(f.var)==2,FALSE,xep)
-	if (xep) {
-		f.out$x <- lapply(p.seq,function(x2){f.out$x[seq(p.fst[x2],p.lst[x2],by=1),]})
-		names(f.out$x) <- p.lab <- sapply(p.num,function(x3){paste(names(data)[x3],sep="",collapse=chr)})
-		f.out$freq$x <- lapply(p.seq,function(x4){f.out$freq$x[seq(p.fst[x4],p.lst[x4],by=1)]})
-		names(f.out$freq$x) <- p.lab
-		if (b>0) {
-			f.out$conf$x <- lapply(p.seq,function(x5){f.out$conf$x[seq(p.fst[x5],p.lst[x5],by=1)]})
-			names(f.out$conf$x) <- p.lab
-			f.out$conf$freq$x <- lapply(p.seq,function(x6){f.out$conf$freq$x[,seq(p.fst[x6],p.lst[x6],by=1)]})
-			names(f.out$conf$freq$x) <- p.lab
-			}
-		}
-	colnames(u.svd) <- r.seq
-	colnames(v.svd) <- r.seq
 	f.out$aux <- list(U=u.svd,V=v.svd,formula=formula,data=as.list(match.call())$data,part=part,b=b,std=std,rel=rel,phi=phi,chr=chr)
 	class(f.out) <- "corregp"
 	f.out
+	}
+
+#' Repeated Correspondence Regression
+#'
+#' A function for repeated correspondence regressions with bootstrapping in order to handle large data sets. This is essentially a wrapper
+#'   \code{replicate(n = r, expr = corregp(...), simplify = FALSE)}, so it may dissappear in the future.  
+#' @param formula A \code{\link[stats]{formula}} specification of which factors to cross with each other. The left-hand (\code{y}) side must be a single factor.
+#'   The right-hand side (\code{x}) can involve all the usual specifications of interactions and/or nested analyses.
+#' @param data The data frame containing the variables specified in the \code{formula}.
+#' @param part Character vector specifying the names of conditional factors (e.g. a factor partioning the levels of the left-hand side \code{y} into groups).
+#'   This argument is relevant for analyses in which one wants to remove between-item variation.
+#' @param b Number of the bootstrap replications (simulations).
+#' @param r Number of repeated calls to \code{\link{corregp}}.
+#' @param xep Logical specifying whether to output the separate terms in the right-hand side (\code{x}) as components in a list.
+#'   If \code{FALSE}, then all \code{x} output is collected in a matrix.
+#' @param std Logical specifying whether to output the standardized coordinates. Defaults to \code{FALSE}.
+#' @param rel Logical specifying whether to divide the coordinates by the \code{sqrt} of their totals, so that one obtains coordinates for
+#'   the relative frequencies (as is customary in correspondence analysis). Defaults to \code{TRUE}.
+#' @param phi Logical specifying whether to compute the output on the scale of the \emph{Chi-squared} value of the contingency table or of the \emph{Phi-squared} value
+#'   (which is \emph{Chi-squared} divided by \emph{N}). Reminiscent of \code{\link[MASS]{corresp}} in package \pkg{MASS}, defaults to \code{FALSE}.
+#' @param chr Character specifying the separator string for constructing the interaction terms.
+#' @param b_scheme Character specifying the sampling scheme for bootstrapping. Must match either \code{"multinomial"} (the default) or \code{"product-multinomial"}.
+#' @return An object of class "corregp" in which the bootstrap replications of all the repeated calls to \code{corregp} are put together.
+#' @seealso \code{\link{corregp}}.
+#' @export
+corregplicate <- function(formula,data,part=NULL,b=100,r=10,xep=TRUE,std=FALSE,rel=TRUE,phi=FALSE,chr=".",b_scheme="multinomial") {
+	if (b==0 || r==0) {
+		stop("both b and r must be > 0",call.=FALSE)
+		}
+	r.epl <- replicate(n=r,corregp(formula=formula,data=data,part=part,b=b,xep=xep,std=std,rel=rel,phi=phi,chr=chr,b_scheme=b_scheme),simplify=FALSE)
+	r.out <- r.epl[[1]][c("eigen","y","x","freq")]
+	s.con <- do.call(rbind,lapply(r.epl,function(r01){r01$conf$eigen}))
+	y.lab <- names(r.epl[[1]]$conf$y)
+	y.con <- sapply(y.lab,function(yl){
+		do.call(rbind,lapply(r.epl,function(r02){r02$conf$y[[yl]]}))
+		},simplify=FALSE,USE.NAMES=TRUE)
+	y.rep <- do.call(rbind,lapply(r.epl,function(r03){r03$conf$freq$y}))
+	if (xep) {
+		x.lab <- sapply(r.epl[[1]]$conf$x,function(x){names(x)},simplify=FALSE,USE.NAMES=TRUE)
+		x.con <- sapply(names(x.lab),function(tl){
+			sapply(x.lab[[tl]],function(xl){
+				do.call(rbind,lapply(r.epl,function(r04){r04$conf$x[[tl]][[xl]]}))
+				},simplify=FALSE,USE.NAMES=TRUE)
+			},simplify=FALSE,USE.NAMES=TRUE)
+		x.rep <- sapply(names(x.lab),function(tl){
+			do.call(rbind,lapply(r.epl,function(r05){r05$conf$freq$x[[tl]]}))
+			},simplify=FALSE,USE.NAMES=TRUE)
+		}
+	else {
+		x.lab <- names(r.epl[[1]]$conf$x)
+		x.con <- sapply(x.lab,function(xl){
+			do.call(rbind,lapply(r.epl,function(r04){r04$conf$x[[xl]]}))
+			},simplify=FALSE,USE.NAMES=TRUE)
+		x.rep <- do.call(rbind,lapply(r.epl,function(r05){r05$conf$freq$x}))
+		}
+	r.out$conf <- list(eigen=s.con,y=y.con,x=x.con,freq=list(y=y.rep,x=x.rep))
+	r.out$aux <- r.epl[[1]]$aux
+	class(r.out) <- "corregp"
+	r.out
 	}
 
 #' Printing Correspondence Regression
@@ -413,7 +536,7 @@ corregp <- function(formula,data,part=NULL,b=0,xep=TRUE,std=FALSE,rel=TRUE,phi=F
 #' @return The output of a call to \code{\link{corregp}}.
 #' @seealso \code{\link{corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' haireye.crg
@@ -482,7 +605,7 @@ print.corregp <- function(x,nf=2,...) {
 #' \item{\code{x} }{If \code{parm} is \code{"y"}, \code{"b"} or any of the term names in X. A list of components \code{p_a} for the absolute contributions and/or \code{a_p} for the squared correlations, depending in \code{contrib}.}
 #' @seealso \code{\link{corregp}}, \code{\link{print.summary.corregp}}, \code{\link{anova.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' summary(haireye.crg, add_ci = TRUE)
@@ -601,7 +724,7 @@ summary.corregp <- function(object,parm=NULL,contrib=NULL,nf=NULL,add_ci=FALSE,c
 #' @return The output of a call to \code{summary} on a "corregp" object. The eigenvalues and contributions are printed with \code{TOTAL}s.
 #' @seealso \code{\link{summary.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' summary(haireye.crg, add_ci = TRUE)
@@ -692,7 +815,7 @@ print.summary.corregp <- function(x,...) {
 #' @return A vector with two components \code{Lower} and \code{Upper} giving the lower and upper confidence limits respectively.
 #' @seealso \code{\link{ciplot.corregp}}, \code{\link{anova.corregp}}, \code{\link{agplot.corregp}}, \code{\link[stats]{confint}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' ci(haireye.crg$conf$eigen[, 1])
@@ -727,7 +850,7 @@ ci <- function(x,cl=0.95,nq=TRUE) {
 #' @return A plot window containing the scree plot.
 #' @seealso \code{\link{corregp}}, \code{\link{summary.corregp}}, \code{\link{anova.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' screeplot(haireye.crg, add_ci = TRUE)
@@ -768,7 +891,7 @@ screeplot.corregp <- function(x,type="value",add_ci=FALSE,cl=0.95,nq=TRUE,...) {
 #'   \code{object} was made with the argument \code{xep = FALSE}, then the output contains the Chi-squared deviation for every individual level in X.
 #' @seealso \code{\link{print.anova.corregp}}, \code{\link{ci}}, \code{\link{summary.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' anova(haireye.crg, nf = 2)
@@ -859,7 +982,7 @@ anova.corregp <- function(object,nf=NULL,cl=0.95,nq=TRUE,...) {
 #' @return The output of a call to \code{anova} on a "corregp" object.
 #' @seealso \code{\link{anova.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' anova(haireye.crg, nf = 2)
@@ -886,7 +1009,7 @@ print.anova.corregp <- function(x,...) {
 #' @return A matrix or vector with coefficients (i.e. scores) for the parameters and axes of interest.
 #' @seealso \code{\link{fitted.corregp}}, \code{\link{residuals.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' coef(haireye.crg, parm = c("Hair", "Sex"), axes = 1:2)
@@ -954,7 +1077,7 @@ coefficients.corregp <- function(object,parm="x",axes=NULL,...) {
 #' @return A matrix or vector with the fitted values for the parameters of interest, based on the selected number of dimensions.
 #' @seealso \code{\link{coef.corregp}}, \code{\link{residuals.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' fitted(haireye.crg, parm = c("Hair", "Sex"), nf = 2)
@@ -1133,7 +1256,7 @@ fitted.values.corregp <- function(object,parm="all",nf=NULL,...) {
 #' @return A matrix or vector with the residuals for the parameters of interest, based on the selected number of dimensions.
 #' @seealso \code{\link{coef.corregp}}, \code{\link{fitted.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' residuals(haireye.crg, parm = c("Hair", "Sex"), nf = 2)
@@ -1308,7 +1431,6 @@ resid.corregp <- function(object,parm="all",nf=NULL,...) {
 #' @details
 #' \code{confGet} is an internal function to be called by \code{\link{cint.corregp}}, \code{\link{cell.corregp}} or \code{\link{cell3d.corregp}}, but not by users.  
 #' @return A list of components selected with \code{parm}.
-#' @export
 confGet <- function(crg,parm) {
 	stopifnot(class(crg)=="corregp")
 	c.out <- NULL
@@ -1360,7 +1482,7 @@ confGet <- function(crg,parm) {
 #' @return A matrix with \code{Lower} and \code{Upper} confidence limits for the coordinates of interest.
 #' @seealso \code{\link{ci}}, \code{\link{ciplot.corregp}}, \code{\link{agplot.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' cint(haireye.crg, parm = "y", axis = 1)
@@ -1426,7 +1548,7 @@ cint <- function(object,...) {
 #' @return A plot window containing the confidence intervals.
 #' @seealso \code{\link{ci}}, \code{\link[gplots]{plotCI}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' ciplot(haireye.crg, parm = "y", axis = 1)
@@ -1592,7 +1714,7 @@ ciplot <- function(x,...) {
 #' @return A parallel coordinate plot containing the output of a correspondence regression.
 #' @seealso \code{\link{ciplot.corregp}}, \code{\link{plot.corregp}}, \code{\link{plot3d.corregp}}, \code{\link{agplot.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' pcplot(haireye.crg, parm = "y", axes = 1:3)
@@ -1707,7 +1829,7 @@ pcplot <- function(x,...) {
 #' @return A list containing \code{np} points for each confidence ellipse of interest.
 #' @seealso \code{\link{plot.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' cell(haireye.crg, parm = "y")
@@ -1782,7 +1904,7 @@ cell <- function(object,...) {
 #' Greenacre, M. (2010) \emph{Biplots in practice}. Bilbao: Fundacion BBVA.
 #' @seealso \code{\link{corregp}}, \code{\link{summary.corregp}}, \code{\link{screeplot.corregp}}, \code{\link{anova.corregp}}, \code{\link[stats]{biplot}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' plot(haireye.crg, x_ell = TRUE, xsub = c("Hair", "Sex"))
@@ -1845,6 +1967,9 @@ plot.corregp <- function(x,axes=1:2,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NULL
 			ell_btm <- cell(object=crg,parm=rownames(x.mat)[xsub],axes=axes,cl=cl,np=np)
 			}
 		}
+	if (!is.null(hlim) && !is.null(vlim)) {
+		asp <- asp_btm <- asp_top <- NA
+		}
 	if (is.null(hlim)) {
 		hlim <- signif(range(range(y.mat[,1],na.rm=TRUE),range(x.mat[,1],na.rm=TRUE)))
 		}
@@ -1863,8 +1988,17 @@ plot.corregp <- function(x,axes=1:2,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NULL
 	if (add_ori) {
 		abline(h=0,v=0,col=col_ori,lwd=lwd_ori,lty=lty_ori)
 		}
+	if (length(col_ell)==1) {
+		col_ell <- rep(col_ell,times=2)
+		}
+	if (length(lwd_ell)==1) {
+		lwd_ell <- rep(lwd_ell,times=2)
+		}
+	if (length(lty_ell)==1) {
+		lty_ell <- rep(lty_ell,times=2)
+		}
 	if (!is.null(ell_btm)) {
-		lapply(ell_btm,function(p1){lines(x=p1[,1],y=p1[,2],col=col_ell,lwd=lwd_ell,lty=lty_ell)})
+		lapply(ell_btm,function(p1){lines(x=p1[,1],y=p1[,2],col=col_ell[1],lwd=lwd_ell[1],lty=lty_ell[1])})
 		}
 	text(x=loc_btm[sub_btm,1],y=loc_btm[sub_btm,2],labels=rownames(loc_btm)[sub_btm],col=col_btm,cex=cex_btm,font=font_btm,family=fam_btm)
 	par(new=TRUE)
@@ -1874,7 +2008,7 @@ plot.corregp <- function(x,axes=1:2,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NULL
 		axis(side=4,col.ticks=col_top,...)
 		}
 	if (!is.null(ell_top)) {
-		lapply(ell_top,function(p2){lines(x=p2[,1],y=p2[,2],col=col_ell,lwd=lwd_ell,lty=lty_ell)})
+		lapply(ell_top,function(p2){lines(x=p2[,1],y=p2[,2],col=col_ell[2],lwd=lwd_ell[2],lty=lty_ell[2])})
 		}
 	text(x=loc_top[sub_top,1],y=loc_top[sub_top,2],labels=rownames(loc_top)[sub_top],col=col_top,cex=cex_top,font=font_top,family=fam_top)
 	par(pty=p.pty)
@@ -1897,7 +2031,7 @@ plot.corregp <- function(x,axes=1:2,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NULL
 #' @return A list containing coordinate points for each confidence ellipsoid of interest.
 #' @seealso \code{\link{plot3d.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' cell3d(haireye.crg, parm = "y")
@@ -2051,13 +2185,25 @@ plot3d.corregp <- function(x,axes=1:3,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NU
 		rgl::abclines3d(x=0,y=0,z=0,a=0,b=1,c=0,col=col_ori,lwd=lwd_ori)
 		rgl::abclines3d(x=0,y=0,z=0,a=0,b=0,c=1,col=col_ori,lwd=lwd_ori)
 		}
+	if (length(col_ell)==1) {
+		col_ell <- rep(col_ell,times=2)
+		}
+	if (length(lwd_ell)==1) {
+		lwd_ell <- rep(lwd_ell,times=2)
+		}
+	if (length(lty_ell)==1) {
+		lty_ell <- rep(lty_ell,times=2)
+		}
+	if (length(opa_ell)==1) {
+		opa_ell <- rep(opa_ell,times=2)
+		}
 	if (!is.null(ell_btm)) {
-		lapply(ell_btm,rgl::plot3d,add=TRUE,xlim=hlim,ylim=vlim,zlim=dlim,lit=FALSE,col=col_ell,lwd=lwd_ell,type=lty_ell,alpha=opa_ell)
+		lapply(ell_btm,rgl::plot3d,add=TRUE,xlim=hlim,ylim=vlim,zlim=dlim,lit=FALSE,col=col_ell[1],lwd=lwd_ell[1],type=lty_ell[1],alpha=opa_ell[1])
 		}
 	rgl::text3d(x=loc_btm[sub_btm,1],y=loc_btm[sub_btm,2],z=loc_btm[sub_btm,3],texts=rownames(loc_btm)[sub_btm],col=col_btm,cex=cex_btm,font=font_btm,family=fam_btm)
 	rgl::plot3d(x=loc_top[sub_top,1],y=loc_top[sub_top,2],z=loc_top[sub_top,3],type="n",xlim=hlim,ylim=vlim,zlim=dlim,main="",sub="",xlab="",ylab="",zlab="",add=TRUE)
 	if (!is.null(ell_top)) {
-		lapply(ell_top,rgl::plot3d,add=TRUE,xlim=hlim,ylim=vlim,zlim=dlim,lit=FALSE,col=col_ell,lwd=lwd_ell,type=lty_ell,alpha=opa_ell)
+		lapply(ell_top,rgl::plot3d,add=TRUE,xlim=hlim,ylim=vlim,zlim=dlim,lit=FALSE,col=col_ell[2],lwd=lwd_ell[2],type=lty_ell[2],alpha=opa_ell[2])
 		}
 	rgl::text3d(x=loc_top[sub_top,1],y=loc_top[sub_top,2],z=loc_top[sub_top,3],texts=rownames(loc_top)[sub_top],col=col_top,cex=cex_top,font=font_top,family=fam_top)
 	invisible()
@@ -2070,6 +2216,8 @@ plot3d.corregp <- function(x,axes=1:3,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NU
 #' @param axes The axes for which to plot the association graph: a vector of indices. Defaults to all the axes.
 #' @param ysub Vector of indices to select a subset of the Y levels.
 #' @param xsub Vector of indices to select a subset of the X levels. Can also be \code{"all"} or \code{"both"} (or abbreviations).
+#' @param sort Vector of axes for which to sort the coordinate scores. The default (\code{NULL}) plots all levels in the order in which they appear in the
+#'   correspondence regression \code{x}.
 #' @param na.rm Logical specifying whether to omit \code{NA} coordinates from the plot. Defaults to \code{FALSE}.
 #' @param col Color of the association graph: either \code{numeric} or see \code{\link[grDevices]{colors}}.
 #' @param cex Character expansion factor: a number to specify the size of the text labels.
@@ -2107,14 +2255,14 @@ plot3d.corregp <- function(x,axes=1:3,y_btm=TRUE,y_ell=FALSE,x_ell=FALSE,ysub=NU
 #' @return A plot window containing the association graph.
 #' @seealso \code{\link{corregp}}, \code{\link{cint.corregp}}, \code{\link{pcplot.corregp}}, \code{\link{plot3d.corregp}}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' data(HairEye)
 #' haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 #' agplot(haireye.crg, axes = 1:2, xsub = c("Hair", "Sex"))
 #' plotag(haireye.crg, axes = 1:2, xsub = c("Hair", "Sex"))
 #' }
 #' @export
-agplot.corregp <- function(x,axes=NULL,ysub=NULL,xsub=NULL,na.rm=FALSE,col="black",cex=par("cex"),font=par("font"),family=par("family"),lwd=par("lwd"),lty=par("lty"),ycol=col,xcol=col,ncol=c("white","lightgray"),nwid=lwd,lcol=col,lwid=lwd,pcol=lcol,ppos=NULL,ptyp="simple",zoom=1,hshft=0,vshft=0,main=NULL,cl=0.95,nq=TRUE,digits=2,...) {
+agplot.corregp <- function(x,axes=NULL,ysub=NULL,xsub=NULL,sort=NULL,na.rm=FALSE,col="black",cex=par("cex"),font=par("font"),family=par("family"),lwd=par("lwd"),lty=par("lty"),ycol=col,xcol=col,ncol=c("white","lightgray"),nwid=lwd,lcol=col,lwid=lwd,pcol=lcol,ppos=NULL,ptyp="simple",zoom=1,hshft=0,vshft=0,main=NULL,cl=0.95,nq=TRUE,digits=2,...) {
 	crg <- x
 	if (is.null(crg$conf)) {
 		stop(paste("no bootstrapping was done in",as.list(match.call())$x,sep=" ",collapse=NULL),call.=FALSE)
@@ -2168,6 +2316,23 @@ agplot.corregp <- function(x,axes=NULL,ysub=NULL,xsub=NULL,na.rm=FALSE,col="blac
 		}
 	y.len <- nrow(y.mat)
 	x.len <- nrow(x.mat)
+	if (!is.null(sort) && !any(is.na(sort))) {
+		if (is.character(sort)) {
+			sort <- match(sort,table=colnames(crg$y))
+			}
+		if (any(!sort %in% axes)) {
+			sort <- axes
+			warning("the values in argument 'sort' do not match the values in argument 'axes'",call.=FALSE)
+			}
+		y.ord <- do.call(order,c(data.frame(y.mat[,sort]),decreasing=TRUE))
+		x.ord <- do.call(order,c(data.frame(x.mat[,sort]),decreasing=TRUE))
+		}
+	else {
+		y.ord <- 1:y.len
+		x.ord <- 1:x.len
+		}
+	y.mat <- y.mat[y.ord,]
+	x.mat <- x.mat[x.ord,]
 	a.pos <- matrix(c(rep(0.5,times=a.len),seq(from=a.len,to=1)/(a.len+1)),ncol=2,dimnames=list(axes,NULL))
 	y.pos <- matrix(c(rep(0.3,times=y.len),seq(from=y.len,to=1)/(y.len+1)),ncol=2,dimnames=list(rownames(y.mat),NULL))
 	x.pos <- matrix(c(rep(0.7,times=x.len),seq(from=x.len,to=1)/(x.len+1)),ncol=2,dimnames=list(rownames(x.mat),NULL))
@@ -2203,10 +2368,10 @@ agplot.corregp <- function(x,axes=NULL,ysub=NULL,xsub=NULL,na.rm=FALSE,col="blac
 		p.mat[l4,] <- diagram::straightarrow(from=a.pos[l.mat[l4,1],],to=c.pos[l.mat[l4,2],],lcol=l.col,lwd=l.wid,lty=lty,arr.col=p.col,arr.pos=p.pos[l.mat[l4,1]],arr.type=ptyp)
 		diagram::textellipse(a.pos[l.mat[l4,1],],radx=a.rad,rady=a.rad,lab=rownames(a.pos)[l.mat[l4,1]],shadow.size=0,box.col=ncol[1],lcol="black",lwd=nwid[1],col=col,cex=cex,font=font,family=family,xpd=TRUE)
 		}
-	ycol <- rep(ycol,length.out=y.len)
-	lapply(1:nrow(y.pos),function(c5){diagram::textrect(y.pos[c5,]-c(c.rad-0.01,0),radx=c.rad,rady=v.rad,lab=rownames(y.pos)[c5],shadow.size=0,box.col="lightgray",lcol="black",lwd=nwid[2],col=ycol[c5],cex=cex,font=font,family=family,xpd=TRUE)})
-	xcol <- rep(xcol,length.out=x.len)
-	lapply(1:nrow(x.pos),function(c6){diagram::textrect(x.pos[c6,]+c(c.rad-0.01,0),radx=c.rad,rady=v.rad,lab=rownames(x.pos)[c6],shadow.size=0,box.col=ncol[2],lcol="black",lwd=nwid[2],col=xcol[c6],cex=cex,font=font,family=family,xpd=TRUE)})
+	ycol <- rep(ycol,length.out=y.len)[y.ord]
+	lapply(1:nrow(y.pos),function(c5){diagram::textrect(y.pos[c5,]-c(c.rad-0.00001,0),radx=c.rad,rady=v.rad,lab=rownames(y.pos)[c5],shadow.size=0,box.col="lightgray",lcol="black",lwd=nwid[2],col=ycol[c5],cex=cex,font=font,family=family,xpd=TRUE)})
+	xcol <- rep(xcol,length.out=x.len)[x.ord]
+	lapply(1:nrow(x.pos),function(c6){diagram::textrect(x.pos[c6,]+c(c.rad-0.00001,0),radx=c.rad,rady=v.rad,lab=rownames(x.pos)[c6],shadow.size=0,box.col=ncol[2],lcol="black",lwd=nwid[2],col=xcol[c6],cex=cex,font=font,family=family,xpd=TRUE)})
 	lapply(1:nrow(p.mat),function(l7){text(p.mat[l7,1],p.mat[l7,2],labels=rownames(p.mat)[l7],pos=3,offset=0.5,col=ifelse(as.numeric(rownames(p.mat)[l7])>0,pcol[1],pcol[2]),cex=cex,font=font,family=family)})
 	par(mar=p.mar)
 	invisible()
@@ -2214,8 +2379,8 @@ agplot.corregp <- function(x,axes=NULL,ysub=NULL,xsub=NULL,na.rm=FALSE,col="blac
 
 #' @rdname agplot.corregp
 #' @export
-plotag.corregp <- function(x,axes=NULL,ysub=NULL,xsub=NULL,na.rm=FALSE,col="black",cex=par("cex"),font=par("font"),family=par("family"),lwd=par("lwd"),lty=par("lty"),ycol=col,xcol=col,ncol=c("white","lightgray"),nwid=lwd,lcol=col,lwid=lwd,pcol=lcol,ppos=NULL,ptyp="simple",zoom=1,hshft=0,vshft=0,main=NULL,cl=0.95,nq=TRUE,digits=2,...) {
-	agplot.corregp(x,axes,ysub,xsub,na.rm,col,cex,font,family,lwd,lty,ycol,xcol,ncol,nwid,lcol,lwid,pcol,ppos,ptyp,zoom,hshft,vshft,main,cl,nq,digits,...)
+plotag.corregp <- function(x,axes=NULL,ysub=NULL,xsub=NULL,sort=NULL,na.rm=FALSE,col="black",cex=par("cex"),font=par("font"),family=par("family"),lwd=par("lwd"),lty=par("lty"),ycol=col,xcol=col,ncol=c("white","lightgray"),nwid=lwd,lcol=col,lwid=lwd,pcol=lcol,ppos=NULL,ptyp="simple",zoom=1,hshft=0,vshft=0,main=NULL,cl=0.95,nq=TRUE,digits=2,...) {
+	agplot.corregp(x,axes,ysub,xsub,sort,na.rm,col,cex,font,family,lwd,lty,ycol,xcol,ncol,nwid,lcol,lwid,pcol,ppos,ptyp,zoom,hshft,vshft,main,cl,nq,digits,...)
 	}
 
 #' @rdname agplot.corregp

@@ -99,7 +99,7 @@ Basic method to plot the output of a correspondence regression.
 The plot of a correspondence regression is by definition a \code{\link[stats]{biplot}}.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 plot(haireye.crg, x_ell = TRUE, xsub = c("Hair", "Sex"))

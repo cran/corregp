@@ -21,7 +21,7 @@ A vector with two components \code{Lower} and \code{Upper} giving the lower and 
 This is the basic function for computing a confidence interval on the basis of a sample of data values.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 ci(haireye.crg$conf$eigen[, 1])

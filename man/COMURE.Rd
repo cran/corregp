@@ -4,10 +4,11 @@
 \name{COMURE}
 \alias{COMURE}
 \title{The Use of Linguistic Variants in Translations vs. Non-translations and in Six Different Registers}
-\format{A data frame with 3762 rows and 4 variables.
+\format{A data frame with 3762 rows and 5 variables.
 \itemize{
   \item{\code{Variant} }{The linguistic variant used in a set of alternatives (27 levels).}
   \item{\code{Variable} }{The linguistic variable specifying a set of alternatives (13 levels).}
+  \item{\code{Variety} }{The dichotomization of \code{Variant} into standard and non-standard.}
   \item{\code{Register} }{The register or "Text type" of the data (6 levels).}
   \item{\code{Language} }{The language (and source language) of the data (3 levels).}
 }}

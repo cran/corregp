@@ -29,7 +29,7 @@ Method to extract the coefficients (i.e. scores) of a correspondence regression.
 The coefficients in correspondence regression are the same as the coordinate scores.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 coef(haireye.crg, parm = c("Hair", "Sex"), axes = 1:2)

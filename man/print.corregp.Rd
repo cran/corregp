@@ -20,7 +20,7 @@ The output of a call to \code{\link{corregp}}.
 Method to print the output of \code{\link{corregp}}.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 haireye.crg

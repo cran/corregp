@@ -43,7 +43,7 @@ An object of class "summary.corregp", providing a summary of a correspondence re
 Method to produce a summary of a correspondence regression.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 summary(haireye.crg, add_ci = TRUE)

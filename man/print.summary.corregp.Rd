@@ -18,7 +18,7 @@ The output of a call to \code{summary} on a "corregp" object. The eigenvalues an
 Method to print the output of \code{\link{summary.corregp}}.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 summary(haireye.crg, add_ci = TRUE)

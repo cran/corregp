@@ -36,7 +36,7 @@ Method to compute confidence ellipses for coordinates in correspondence regressi
 Typically, \code{cell} is not so much used directly as it is called by a \code{\link{plot.corregp}} command.
 }
 \examples{
-\dontrun{
+\donttest{
 data(HairEye)
 haireye.crg <- corregp(Eye ~ Hair * Sex, data = HairEye, b = 3000)
 cell(haireye.crg, parm = "y")
